@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gabriel-hawerroth/capitech-back/configs"
+	"github.com/gabriel-hawerroth/capitech-back/internal/infra/database"
 	"github.com/gabriel-hawerroth/capitech-back/internal/infra/web"
 	"github.com/gabriel-hawerroth/capitech-back/internal/infra/web/webserver"
 	_ "github.com/lib/pq"
@@ -26,6 +27,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	database.MigrateSchema(db)
 
 	webServer := webserver.NewWebServer(confs.WebServerPort)
 	web.LoadHandlers(webServer, db)

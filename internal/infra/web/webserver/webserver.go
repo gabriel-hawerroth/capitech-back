@@ -1,7 +1,7 @@
 package webserver
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -30,7 +30,7 @@ func (s *WebServer) Start() {
 		s.Router.Handle(path, handler)
 	}
 
-	fmt.Println("Starting web server on port", s.WebServerPort)
+	log.Println("Starting web server on port", s.WebServerPort)
 	err := http.ListenAndServe(s.WebServerPort, muxHandler)
 	if err != nil {
 		panic(err)

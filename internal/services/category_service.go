@@ -1,12 +1,12 @@
 package services
 
-import "github.com/gabriel-hawerroth/capitech-back/internal/infra/database"
+import "github.com/gabriel-hawerroth/capitech-back/internal/infra/database/repositories"
 
 type CategoryService struct {
-	CategoryRepository database.CategoryRepository
+	CategoryRepository repositories.CategoryRepository
 }
 
-func NewCategoryService(CategoryRepository database.CategoryRepository) *CategoryService {
+func NewCategoryService(CategoryRepository repositories.CategoryRepository) *CategoryService {
 	return &CategoryService{
 		CategoryRepository: CategoryRepository,
 	}

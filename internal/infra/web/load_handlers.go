@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gabriel-hawerroth/capitech-back/internal/infra/database"
+	"github.com/gabriel-hawerroth/capitech-back/internal/infra/database/repositories"
 	"github.com/gabriel-hawerroth/capitech-back/internal/infra/web/handlers"
 	"github.com/gabriel-hawerroth/capitech-back/internal/infra/web/webserver"
 	"github.com/gabriel-hawerroth/capitech-back/internal/services"
@@ -28,7 +28,7 @@ func LoadHandlers(webServer *webserver.WebServer, dbConn *sql.DB) {
 func loadCategoryHandlers() {
 	const basePath = "/category"
 
-	repository := database.NewCategoryRepository(db)
+	repository := repositories.NewCategoryRepository(db)
 	service := services.NewCategoryService(*repository)
 	handler := handlers.NewCategoryHandler(*service)
 
@@ -38,7 +38,7 @@ func loadCategoryHandlers() {
 func loadShoppingCartHandlers() {
 	const basePath = "/shopping-cart"
 
-	repository := database.NewShoppingCartRepository(db)
+	repository := repositories.NewShoppingCartRepository(db)
 	service := services.NewShoppingCartService(*repository)
 	handler := handlers.NewShoppingCartHandler(*service)
 
@@ -49,7 +49,7 @@ func loadShoppingCartHandlers() {
 func loadProductHandlers() {
 	const basePath = "/product"
 
-	repository := database.NewProductRepository(db)
+	repository := repositories.NewProductRepository(db)
 	service := services.NewProductService(*repository)
 	handler := handlers.NewProductHandler(*service)
 
