@@ -50,4 +50,4 @@ Serão criados dois arquivos, um `.up` que deve conter a migração e outro `.do
 
 A lib criará uma tabela nomeada `schema_migrations` e as migrações serão executadas automaticamente ao subir a aplicação.
 
-! Não commitar migrações com erro, em caso de falha, altere o atributo `version` para o número da última migração aplicada com sucesso e marque o atributo `dirty` como false !
+! Não commitar migrações com erro, em caso de falha, altere o atributo `version` para o número da última migração aplicada com sucesso, marque o atributo `dirty` como false e corrija o script de migração !
