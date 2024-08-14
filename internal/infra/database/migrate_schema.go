@@ -28,5 +28,5 @@ func MigrateSchema(db *sql.DB) {
 		log.Fatalf("Error applying migrations: %v", err)
 	}
 
-	log.Println("Successfully applied migrations!")
+	log.Println("Successfully applied migrations")
 }

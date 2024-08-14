@@ -20,6 +20,10 @@ func NewWebServer(serverPort string) *WebServer {
 }
 
 func (s *WebServer) AddHandler(path string, handler http.HandlerFunc) {
+	if s.Handlers[path] != nil {
+		panic("identical http routes cannot be created")
+	}
+
 	s.Handlers[path] = handler
 }
 
