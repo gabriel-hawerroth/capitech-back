@@ -16,6 +16,14 @@ func NewProductService(productRepository repositories.ProductRepository) *Produc
 	}
 }
 
+func (s *ProductService) GetFilteredProducts(params dto.ProductQueryParams) ([]*entity.Product, error) {
+	if params.Pagination.Size >= 50 {
+		params.Pagination.Size = 50
+	}
+
+	return s.ProductRepository.GetFilteredProducts(params)
+}
+
 func (s *ProductService) Create(dto dto.CreateProductDto) (*entity.Product, error) {
 	return s.ProductRepository.Create(dto)
 }

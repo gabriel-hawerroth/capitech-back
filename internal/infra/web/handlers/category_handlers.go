@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/gabriel-hawerroth/capitech-back/internal/services"
@@ -17,5 +18,12 @@ func NewCategoryHandler(CategoryService services.CategoryService) *CategoryHandl
 }
 
 func (h *CategoryHandler) GetCategoriesList(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+	categories, err := h.CategoryService.GetCategoriesList()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	setJsonContentType(w)
+	json.NewEncoder(w).Encode(categories)
 }
