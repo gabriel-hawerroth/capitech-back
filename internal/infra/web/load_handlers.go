@@ -58,7 +58,7 @@ func loadProductHandlers() {
 	server.AddHandler(getMapping(basePath)+"/getTrendingProductsList", handler.GetTrendingProducts)
 	server.AddHandler(getMapping(basePath)+"/getBestSellingProductsList", handler.GetBestSellingProducts)
 	server.AddHandler(getMapping(basePath)+"/getUserSearchHistory", handler.GetUserSearchHistory)
-	server.AddHandler(postMapping(basePath), handler.Save)
+	server.AddHandler(postMapping(basePath), handler.Create)
 	server.AddHandler(putMapping(basePath)+"/{id}", handler.Edit)
 	server.AddHandler(patchMapping(basePath)+"/editProductPrice/{id}", handler.ChangePrice)
 	server.AddHandler(patchMapping(basePath)+"/editProductStockQuantity/{id}", handler.ChangeStockQuantity)
