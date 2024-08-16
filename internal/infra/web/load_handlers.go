@@ -3,7 +3,6 @@ package web
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
 
 	"github.com/gabriel-hawerroth/capitech-back/internal/infra/database/repositories"
 	"github.com/gabriel-hawerroth/capitech-back/internal/infra/web/handlers"
@@ -21,8 +20,6 @@ func LoadHandlers(webServer *webserver.WebServer, dbConn *sql.DB) {
 	loadCategoryHandlers()
 	loadShoppingCartHandlers()
 	loadProductHandlers()
-
-	server.AddHandler("/hello-world", helloWorld)
 }
 
 func loadCategoryHandlers() {
@@ -85,8 +82,4 @@ func patchMapping(path string) string {
 
 func deleteMapping(path string) string {
 	return fmt.Sprintf("DELETE %s", path)
-}
-
-func helloWorld(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Hello, World!")
 }

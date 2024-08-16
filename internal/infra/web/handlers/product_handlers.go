@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gabriel-hawerroth/capitech-back/internal/dto"
@@ -23,24 +24,10 @@ func (h *ProductHandler) GetById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) GetProductsList(w http.ResponseWriter, r *http.Request) {
-	filtersParam := r.URL.Query().Get("filters")
-	paginationParam := r.URL.Query().Get("pagination")
-
-	var filters dto.ProductFilter
-	var pagination dto.Pagination
-
-	if filtersParam != "" {
-		if err := json.Unmarshal([]byte(filtersParam), &filters); err != nil {
-			http.Error(w, "Invalid filters parameter", http.StatusBadRequest)
-			return
-		}
-	}
-
-	if paginationParam != "" {
-		if err := json.Unmarshal([]byte(paginationParam), &pagination); err != nil {
-			http.Error(w, "Invalid pagination parameter", http.StatusBadRequest)
-			return
-		}
+	filters, pagination, err := parseListQueryParams(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	queryParams := dto.ProductQueryParams{
@@ -110,4 +97,26 @@ func (h *ProductHandler) RemoveImage(w http.ResponseWriter, r *http.Request) {
 
 func (h *ProductHandler) RemoveProduct(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
+}
+
+func parseListQueryParams(r *http.Request) (dto.ProductFilter, dto.Pagination, error) {
+	filtersParam := r.URL.Query().Get("filters")
+	paginationParam := r.URL.Query().Get("pagination")
+
+	var filters dto.ProductFilter
+	var pagination dto.Pagination
+
+	if filtersParam != "" {
+		if err := json.Unmarshal([]byte(filtersParam), &filters); err != nil {
+			return filters, pagination, fmt.Errorf("invalid filters parameter: %v", err)
+		}
+	}
+
+	if paginationParam != "" {
+		if err := json.Unmarshal([]byte(paginationParam), &pagination); err != nil {
+			return filters, pagination, fmt.Errorf("invalid pagination parameter: %v", err)
+		}
+	}
+
+	return filters, pagination, nil
 }

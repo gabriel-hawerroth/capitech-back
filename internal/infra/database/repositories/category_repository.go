@@ -25,7 +25,7 @@ func (r *CategoryRepository) GetCategoriesList() ([]*entity.Category, error) {
 
 	i := 0
 	for rows.Next() {
-		category := new(entity.Category)
+		category := &entity.Category{}
 		if err := scanCategories(rows, category); err != nil {
 			return nil, err
 		}

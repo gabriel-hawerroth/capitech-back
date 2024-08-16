@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 	"strings"
 
 	"github.com/gabriel-hawerroth/capitech-back/internal/dto"
@@ -36,14 +37,15 @@ func (r *ProductRepository) Create(product dto.CreateProductDto) (*entity.Produc
 	return &createdProduct, nil
 }
 
-func (r *ProductRepository) GetFilteredProducts(params dto.ProductQueryParams) ([]*entity.Product, error) {
-	query := `
-		SELECT *
+// Função auxiliar para construir a query e os argumentos
+func buildProductQuery(params dto.ProductQueryParams, selectClause string) (string, []interface{}) {
+	query := selectClause + `
 		FROM product
 		WHERE price BETWEEN ? AND ?
 	`
 
-	args := []interface{}{params.Filters.MinPrice, params.Filters.MaxPrice}
+	args := make([]any, 0)
+	args = append(args, params.Filters.MinPrice, params.Filters.MaxPrice)
 
 	if params.Filters.Name != nil {
 		lowerName := strings.ToLower(*params.Filters.Name)
@@ -58,9 +60,21 @@ func (r *ProductRepository) GetFilteredProducts(params dto.ProductQueryParams) (
 		}
 	}
 
-	query += " ORDER BY id LIMIT ? OFFSET ?"
-	offset := (params.Pagination.Page - 1) * params.Pagination.Size
-	args = append(args, params.Pagination.Size, offset)
+	return query, args
+}
+
+func (r *ProductRepository) GetFilteredProducts(params dto.ProductQueryParams) ([]*entity.Product, error) {
+	if params.Pagination.Size >= 50 {
+		params.Pagination.Size = 50
+	}
+
+	query, args := buildProductQuery(params, "SELECT *")
+
+	query += " ORDER BY name asc OFFSET ? LIMIT ?"
+	offset := (params.Pagination.Page) * params.Pagination.Size
+	args = append(args, offset, params.Pagination.Size)
+
+	query = replacePlaceholders(query, len(args))
 
 	rows, err := r.DB.Query(query, args...)
 	if err != nil {
@@ -68,9 +82,9 @@ func (r *ProductRepository) GetFilteredProducts(params dto.ProductQueryParams) (
 	}
 	defer rows.Close()
 
-	var products []*entity.Product
+	products := make([]*entity.Product, 0)
 	for rows.Next() {
-		product := new(entity.Product)
+		product := &entity.Product{}
 		if err := scanProducts(rows, product); err != nil {
 			return nil, err
 		}
@@ -82,6 +96,21 @@ func (r *ProductRepository) GetFilteredProducts(params dto.ProductQueryParams) (
 	}
 
 	return products, nil
+}
+
+func (r *ProductRepository) GetFilteredProductsCount(params dto.ProductQueryParams) (int, error) {
+	query, args := buildProductQuery(params, "SELECT count(1)")
+
+	query = replacePlaceholders(query, len(args))
+
+	row := r.DB.QueryRow(query, args...)
+
+	var count int
+	if err := row.Scan(&count); err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 func scanProduct(row *sql.Row, product *entity.Product) error {
@@ -96,4 +125,12 @@ func scanProducts(rows *sql.Rows, product *entity.Product) error {
 		&product.Id, &product.Name, &product.Description, &product.Price,
 		&product.CategoryId, &product.StockQuantity, &product.Image,
 	)
+}
+
+func replacePlaceholders(query string, numArgs int) string {
+	for i := 1; i <= numArgs; i++ {
+		placeholder := fmt.Sprintf("$%d", i)
+		query = strings.Replace(query, "?", placeholder, 1)
+	}
+	return query
 }

@@ -16,12 +16,21 @@ func NewProductService(productRepository repositories.ProductRepository) *Produc
 	}
 }
 
-func (s *ProductService) GetFilteredProducts(params dto.ProductQueryParams) ([]*entity.Product, error) {
-	if params.Pagination.Size >= 50 {
-		params.Pagination.Size = 50
+func (s *ProductService) GetFilteredProducts(params dto.ProductQueryParams) (*dto.PaginationResponse[entity.Product], error) {
+	content, err := s.ProductRepository.GetFilteredProducts(params)
+	if err != nil {
+		return nil, err
 	}
 
-	return s.ProductRepository.GetFilteredProducts(params)
+	totalItems, err := s.ProductRepository.GetFilteredProductsCount(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.PaginationResponse[entity.Product]{
+		Content:    content,
+		TotalItems: totalItems,
+	}, nil
 }
 
 func (s *ProductService) Create(dto dto.CreateProductDto) (*entity.Product, error) {
