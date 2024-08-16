@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gabriel-hawerroth/capitech-back/internal/dto"
 	"github.com/gabriel-hawerroth/capitech-back/internal/services"
@@ -20,7 +21,23 @@ func NewProductHandler(productService services.ProductService) *ProductHandler {
 }
 
 func (h *ProductHandler) GetById(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+	productId, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "Error casting param", http.StatusBadRequest)
+		return
+	}
+
+	product, err := h.ProductService.GetById(productId)
+	if err != nil {
+		setHttpError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	setJsonContentType(w)
+	if err := json.NewEncoder(w).Encode(product); err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *ProductHandler) GetProductsList(w http.ResponseWriter, r *http.Request) {

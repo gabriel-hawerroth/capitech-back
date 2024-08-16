@@ -16,6 +16,10 @@ func NewProductService(productRepository repositories.ProductRepository) *Produc
 	}
 }
 
+func (s *ProductService) GetById(id int) (*entity.Product, error) {
+	return s.ProductRepository.GetById(id)
+}
+
 func (s *ProductService) GetFilteredProducts(params dto.ProductQueryParams) (*dto.PaginationResponse[entity.Product], error) {
 	content, err := s.ProductRepository.GetFilteredProducts(params)
 	if err != nil {

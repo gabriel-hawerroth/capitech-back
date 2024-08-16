@@ -17,6 +17,17 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 	return &ProductRepository{DB: db}
 }
 
+func (r *ProductRepository) GetById(id int) (*entity.Product, error) {
+	row := r.DB.QueryRow("SELECT * FROM product WHERE id = $1", id)
+
+	var product entity.Product
+	if err := scanProduct(row, &product); err != nil {
+		return nil, err
+	}
+
+	return &product, nil
+}
+
 func (r *ProductRepository) Create(product dto.CreateProductDto) (*entity.Product, error) {
 	query := `
 		INSERT INTO product (name, description, price, category_id, stock_quantity)
