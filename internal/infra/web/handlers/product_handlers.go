@@ -78,7 +78,7 @@ func (h *ProductHandler) GetUserSearchHistory(w http.ResponseWriter, r *http.Req
 }
 
 func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var data dto.CreateProductDto
+	var data dto.SaveProductDto
 	err := json.NewDecoder(r.Body).Decode(&data)
 	checkDecodeError(err, w)
 

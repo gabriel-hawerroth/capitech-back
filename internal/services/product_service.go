@@ -37,6 +37,6 @@ func (s *ProductService) GetFilteredProducts(params dto.ProductQueryParams) (*dt
 	}, nil
 }
 
-func (s *ProductService) Create(dto dto.CreateProductDto) (*entity.Product, error) {
+func (s *ProductService) Create(dto dto.SaveProductDto) (*entity.Product, error) {
 	return s.ProductRepository.Create(dto)
 }

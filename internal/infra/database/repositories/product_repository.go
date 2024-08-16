@@ -28,7 +28,7 @@ func (r *ProductRepository) GetById(id int) (*entity.Product, error) {
 	return &product, nil
 }
 
-func (r *ProductRepository) Create(product dto.CreateProductDto) (*entity.Product, error) {
+func (r *ProductRepository) Create(product dto.SaveProductDto) (*entity.Product, error) {
 	query := `
 		INSERT INTO product (name, description, price, category_id, stock_quantity)
 		VALUES ($1, $2, $3, $4, $5)
