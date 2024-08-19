@@ -9,7 +9,7 @@ import (
 	"github.com/gabriel-hawerroth/capitech-back/internal/infra/database"
 	"github.com/gabriel-hawerroth/capitech-back/internal/infra/web"
 	"github.com/gabriel-hawerroth/capitech-back/internal/infra/web/webserver"
-	"github.com/gabriel-hawerroth/capitech-back/third_party/aws"
+	awsclients "github.com/gabriel-hawerroth/capitech-back/third_party/aws"
 	_ "github.com/lib/pq"
 )
 
@@ -21,9 +21,9 @@ func main() {
 	db := openDatabaseConnection()
 	defer db.Close()
 
-	_ = createS3Client()
+	s3Client := createS3Client()
 
-	startWebServer(db)
+	startWebServer(db, s3Client)
 }
 
 func loadConfigs() *configs.Conf {
@@ -44,17 +44,17 @@ func openDatabaseConnection() *sql.DB {
 	return db
 }
 
-func createS3Client() *aws.S3Client {
-	awsS3Client, err := aws.NewS3Client(confs.AwsIamAccessKey, confs.AwsIamSecretKey)
+func createS3Client() *awsclients.S3Client {
+	awsS3Client, err := awsclients.NewS3Client(confs.AwsIamAccessKey, confs.AwsIamSecretKey)
 	checkError(err)
 
 	log.Println("Successfully connected to AWS S3")
 	return awsS3Client
 }
 
-func startWebServer(db *sql.DB) {
+func startWebServer(db *sql.DB, s3Client *awsclients.S3Client) {
 	webServer := webserver.NewWebServer(confs.WebServerPort)
-	web.LoadHandlers(webServer, db)
+	web.LoadHandlers(webServer, db, s3Client)
 	webServer.Start()
 }
 

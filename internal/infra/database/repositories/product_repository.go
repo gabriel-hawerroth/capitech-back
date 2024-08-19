@@ -145,6 +145,11 @@ func (r *ProductRepository) GetFilteredProductsCount(params dto.ProductQueryPara
 	return count, nil
 }
 
+func (r *ProductRepository) ChangeImage(productId *int, image *string) error {
+	_, err := r.DB.Exec("UPDATE product SET image = $2 WHERE id = $1", productId, image)
+	return err
+}
+
 func scanProduct(row *sql.Row, product *entity.Product) error {
 	return row.Scan(
 		&product.Id, &product.Name, &product.Description, &product.Price,

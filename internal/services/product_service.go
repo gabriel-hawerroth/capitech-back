@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/gabriel-hawerroth/capitech-back/internal/dto"
 	"github.com/gabriel-hawerroth/capitech-back/internal/entity"
@@ -16,9 +17,10 @@ type ProductService struct {
 	S3Client          awsclients.S3Client
 }
 
-func NewProductService(productRepository repositories.ProductRepository) *ProductService {
+func NewProductService(productRepository repositories.ProductRepository, s3Client awsclients.S3Client) *ProductService {
 	return &ProductService{
 		ProductRepository: productRepository,
+		S3Client:          s3Client,
 	}
 }
 
@@ -87,19 +89,41 @@ func (s *ProductService) ChangeImage(productId int, w http.ResponseWriter, r *ht
 		return fmt.Errorf("failed to get product: %v", err)
 	}
 
-	if product.Image != nil && *product.Image != "" {
-		err = s.S3Client.UpdateS3File(*product.Image, fileName, file)
-	} else {
-		err = s.S3Client.UploadS3File(fileName, file)
+	var wg sync.WaitGroup
+	errChan := make(chan error, 2)
+
+	// Upload image to S3
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		if product.Image != nil && *product.Image != "" {
+			err = s.S3Client.UpdateS3File(*product.Image, fileName, file)
+		} else {
+			err = s.S3Client.UploadS3File(fileName, file)
+		}
+
+		if err != nil {
+			errChan <- fmt.Errorf("failed to upload image to s3: %v", err)
+		}
+	}()
+
+	// Update image on database
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		if err := s.ProductRepository.ChangeImage(&productId, &fileName); err != nil {
+			errChan <- fmt.Errorf("failed to update image on database: %v", err)
+		}
+	}()
+
+	wg.Wait()
+	close(errChan)
+
+	if len(errChan) > 0 {
+		return <-errChan
 	}
-
-	if err != nil {
-		return fmt.Errorf("failed to upload image: %v", err)
-	}
-
-	// product.Image = &fileName
-
-	// TODO update product image in database
 
 	return nil
 }
