@@ -17,8 +17,8 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 	return &ProductRepository{DB: db}
 }
 
-func (r *ProductRepository) GetById(id int) (*entity.Product, error) {
-	row := r.DB.QueryRow("SELECT * FROM product WHERE id = $1", id)
+func (r *ProductRepository) GetById(id *int) (*entity.Product, error) {
+	row := r.DB.QueryRow("SELECT * FROM product WHERE id = $1", *id)
 
 	var product entity.Product
 	if err := scanProduct(row, &product); err != nil {
@@ -147,6 +147,11 @@ func (r *ProductRepository) GetFilteredProductsCount(params dto.ProductQueryPara
 
 func (r *ProductRepository) ChangeImage(productId *int, image *string) error {
 	_, err := r.DB.Exec("UPDATE product SET image = $2 WHERE id = $1", productId, image)
+	return err
+}
+
+func (r *ProductRepository) RemoveImage(productId *int) error {
+	_, err := r.DB.Exec("UPDATE product SET image = NULL WHERE id = $1", productId)
 	return err
 }
 

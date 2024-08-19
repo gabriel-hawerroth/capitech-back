@@ -62,7 +62,7 @@ func loadProductHandlers() {
 	server.AddHandler(putMapping(basePath)+"/{id}", handler.Update)
 	server.AddHandler(patchMapping(basePath)+"/editProductPrice/{id}", handler.ChangePrice)
 	server.AddHandler(patchMapping(basePath)+"/editProductStockQuantity/{id}", handler.ChangeStockQuantity)
-	server.AddHandler(putMapping(basePath)+"/changeProductImage/{id}", handler.ChangeImage)
+	server.AddHandler(patchMapping(basePath)+"/changeProductImage/{id}", handler.ChangeImage)
 	server.AddHandler(patchMapping(basePath)+"/removeProductImage/{id}", handler.RemoveImage)
 	server.AddHandler(deleteMapping(basePath)+"/{id}", handler.RemoveImage)
 }
@@ -80,7 +80,7 @@ func putMapping(path string) string {
 }
 
 func patchMapping(path string) string {
-	return fmt.Sprintf("PUT %s", path)
+	return fmt.Sprintf("PATCH %s", path)
 }
 
 func deleteMapping(path string) string {

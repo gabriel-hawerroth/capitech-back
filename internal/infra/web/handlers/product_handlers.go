@@ -27,7 +27,7 @@ func (h *ProductHandler) GetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.ProductService.GetById(productId)
+	product, err := h.ProductService.GetById(&productId)
 	if err != nil {
 		setHttpError(w, err, http.StatusBadRequest)
 		return
@@ -137,7 +137,7 @@ func (h *ProductHandler) ChangeImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.ProductService.ChangeImage(productId, w, r)
+	err = h.ProductService.ChangeImage(&productId, w, r)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to upload image: %s", err.Error()), http.StatusInternalServerError)
 		return
@@ -147,7 +147,19 @@ func (h *ProductHandler) ChangeImage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) RemoveImage(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+	productId, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, errorCastingParams, http.StatusBadRequest)
+		return
+	}
+
+	err = h.ProductService.RemoveImage(&productId)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to delete image: %s", err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *ProductHandler) RemoveProduct(w http.ResponseWriter, r *http.Request) {

@@ -40,8 +40,8 @@ func NewS3Client(iamAccessKey, iamSecretKey string) (*S3Client, error) {
 }
 
 // GetS3ProductFileName gera o nome do arquivo a ser armazenado no S3
-func (a *S3Client) GetS3ProductFileName(productId int) string {
-	return fmt.Sprintf("%d_%d.jpg", productId, time.Now().Unix())
+func (a *S3Client) GetS3ProductFileName(productId *int) string {
+	return fmt.Sprintf("%d_%d.jpg", *productId, time.Now().Unix())
 }
 
 // GetS3File baixa um arquivo do S3 e o retorna como um byte array
@@ -62,18 +62,18 @@ func (s *S3Client) GetS3File(filename string) ([]byte, error) {
 }
 
 // UploadS3File envia um arquivo para o S3
-func (s *S3Client) UploadS3File(filename string, file multipart.File) error {
+func (s *S3Client) UploadS3File(filename *string, file *multipart.File) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	fileBytes, err := io.ReadAll(file)
+	fileBytes, err := io.ReadAll(*file)
 	if err != nil {
 		return fmt.Errorf("falha ao ler o arquivo: %w", err)
 	}
 
 	_, err = s.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(s.bucket),
-		Key:    aws.String(filename),
+		Key:    aws.String(*filename),
 		Body:   bytes.NewReader(fileBytes),
 	})
 	if err != nil {
@@ -84,7 +84,7 @@ func (s *S3Client) UploadS3File(filename string, file multipart.File) error {
 }
 
 // UpdateS3File substitui um arquivo existente no S3 por um novo
-func (s *S3Client) UpdateS3File(oldFileName, newFileName string, file multipart.File) error {
+func (s *S3Client) UpdateS3File(oldFileName, newFileName *string, file *multipart.File) error {
 	err := s.DeleteS3File(oldFileName)
 	if err != nil {
 		return fmt.Errorf("falha ao deletar arquivo antigo do S3: %w", err)
@@ -99,13 +99,13 @@ func (s *S3Client) UpdateS3File(oldFileName, newFileName string, file multipart.
 }
 
 // DeleteS3File remove um arquivo do S3
-func (s *S3Client) DeleteS3File(filename string) error {
+func (s *S3Client) DeleteS3File(filename *string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	_, err := s.client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(s.bucket),
-		Key:    aws.String(filename),
+		Key:    aws.String(*filename),
 	})
 	if err != nil {
 		return fmt.Errorf("falha ao deletar arquivo do S3: %w", err)

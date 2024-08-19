@@ -24,7 +24,7 @@ func NewProductService(productRepository repositories.ProductRepository, s3Clien
 	}
 }
 
-func (s *ProductService) GetById(id int) (*entity.Product, error) {
+func (s *ProductService) GetById(id *int) (*entity.Product, error) {
 	return s.ProductRepository.GetById(id)
 }
 
@@ -53,7 +53,7 @@ func (s *ProductService) Update(id int, dto dto.SaveProductDto) (*entity.Product
 	return s.ProductRepository.Update(id, dto)
 }
 
-func (s *ProductService) ChangeImage(productId int, w http.ResponseWriter, r *http.Request) error {
+func (s *ProductService) ChangeImage(productId *int, w http.ResponseWriter, r *http.Request) error {
 	const maxUploadSize = 5 << 20
 
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
@@ -98,9 +98,9 @@ func (s *ProductService) ChangeImage(productId int, w http.ResponseWriter, r *ht
 		defer wg.Done()
 
 		if product.Image != nil && *product.Image != "" {
-			err = s.S3Client.UpdateS3File(*product.Image, fileName, file)
+			err = s.S3Client.UpdateS3File(product.Image, &fileName, &file)
 		} else {
-			err = s.S3Client.UploadS3File(fileName, file)
+			err = s.S3Client.UploadS3File(&fileName, &file)
 		}
 
 		if err != nil {
@@ -113,8 +113,47 @@ func (s *ProductService) ChangeImage(productId int, w http.ResponseWriter, r *ht
 	go func() {
 		defer wg.Done()
 
-		if err := s.ProductRepository.ChangeImage(&productId, &fileName); err != nil {
+		if err := s.ProductRepository.ChangeImage(productId, &fileName); err != nil {
 			errChan <- fmt.Errorf("failed to update image on database: %v", err)
+		}
+	}()
+
+	wg.Wait()
+	close(errChan)
+
+	if len(errChan) > 0 {
+		return <-errChan
+	}
+
+	return nil
+}
+
+func (s *ProductService) RemoveImage(productId *int) error {
+	product, err := s.GetById(productId)
+	if err != nil {
+		return fmt.Errorf("failed to get product: %v", err)
+	}
+
+	var wg sync.WaitGroup
+	errChan := make(chan error, 2)
+
+	// Delete image from S3
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		if err := s.S3Client.DeleteS3File(product.Image); err != nil {
+			errChan <- fmt.Errorf("failed to delete image from s3: %v", err)
+		}
+	}()
+
+	// Delete image on database
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		if err := s.ProductRepository.RemoveImage(productId); err != nil {
+			errChan <- fmt.Errorf("failed to remove image on database: %v", err)
 		}
 	}()
 
