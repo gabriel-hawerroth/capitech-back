@@ -23,7 +23,7 @@ func NewProductHandler(productService services.ProductService) *ProductHandler {
 func (h *ProductHandler) GetById(w http.ResponseWriter, r *http.Request) {
 	productId, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Error casting param", http.StatusBadRequest)
+		http.Error(w, errorCastingParams, http.StatusBadRequest)
 		return
 	}
 
@@ -35,7 +35,52 @@ func (h *ProductHandler) GetById(w http.ResponseWriter, r *http.Request) {
 
 	setJsonContentType(w)
 	if err := json.NewEncoder(w).Encode(product); err != nil {
-		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		http.Error(w, errorEncodingResponse, http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var data dto.SaveProductDto
+	err := json.NewDecoder(r.Body).Decode(&data)
+	checkDecodeError(err, w)
+
+	product, err := h.ProductService.Create(data)
+	if err != nil {
+		setHttpError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	setJsonContentType(w)
+	if err := json.NewEncoder(w).Encode(product); err != nil {
+		http.Error(w, errorEncodingResponse, http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
+	productId, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, errorCastingParams, http.StatusBadRequest)
+		return
+	}
+
+	var data dto.SaveProductDto
+	err = json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		http.Error(w, errorDecodingRequestBody, http.StatusInternalServerError)
+		return
+	}
+
+	product, err := h.ProductService.Update(productId, data)
+	if err != nil {
+		setHttpError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	setJsonContentType(w)
+	if err := json.NewEncoder(w).Encode(product); err != nil {
+		http.Error(w, errorEncodingResponse, http.StatusInternalServerError)
 		return
 	}
 }
@@ -60,7 +105,7 @@ func (h *ProductHandler) GetProductsList(w http.ResponseWriter, r *http.Request)
 
 	setJsonContentType(w)
 	if err := json.NewEncoder(w).Encode(products); err != nil {
-		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		http.Error(w, errorEncodingResponse, http.StatusInternalServerError)
 		return
 	}
 }
@@ -77,25 +122,6 @@ func (h *ProductHandler) GetUserSearchHistory(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var data dto.SaveProductDto
-	err := json.NewDecoder(r.Body).Decode(&data)
-	checkDecodeError(err, w)
-
-	product, err := h.ProductService.Create(data)
-	if err != nil {
-		setHttpError(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	setJsonContentType(w)
-	json.NewEncoder(w).Encode(product)
-}
-
-func (h *ProductHandler) Edit(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
 func (h *ProductHandler) ChangePrice(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
@@ -105,7 +131,19 @@ func (h *ProductHandler) ChangeStockQuantity(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *ProductHandler) ChangeImage(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+	productId, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, errorCastingParams, http.StatusBadRequest)
+		return
+	}
+
+	err = h.ProductService.ChangeImage(productId, w, r)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to upload image: %s", err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *ProductHandler) RemoveImage(w http.ResponseWriter, r *http.Request) {

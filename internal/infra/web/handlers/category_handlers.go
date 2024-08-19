@@ -25,5 +25,8 @@ func (h *CategoryHandler) GetCategoriesList(w http.ResponseWriter, r *http.Reque
 	}
 
 	setJsonContentType(w)
-	json.NewEncoder(w).Encode(categories)
+	if err := json.NewEncoder(w).Encode(categories); err != nil {
+		http.Error(w, errorEncodingResponse, http.StatusInternalServerError)
+		return
+	}
 }

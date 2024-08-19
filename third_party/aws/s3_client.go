@@ -1,11 +1,11 @@
-package aws
+package awsclients
 
 import (
 	"bytes"
 	"context"
 	"fmt"
 	"io"
-	"os"
+	"mime/multipart"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -62,7 +62,7 @@ func (s *S3Client) GetS3File(filename string) ([]byte, error) {
 }
 
 // UploadS3File envia um arquivo para o S3
-func (s *S3Client) UploadS3File(filename string, file *os.File) error {
+func (s *S3Client) UploadS3File(filename string, file multipart.File) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -84,7 +84,7 @@ func (s *S3Client) UploadS3File(filename string, file *os.File) error {
 }
 
 // UpdateS3File substitui um arquivo existente no S3 por um novo
-func (s *S3Client) UpdateS3File(oldFileName, newFileName string, file *os.File) error {
+func (s *S3Client) UpdateS3File(oldFileName, newFileName string, file multipart.File) error {
 	err := s.DeleteS3File(oldFileName)
 	if err != nil {
 		return fmt.Errorf("falha ao deletar arquivo antigo do S3: %w", err)

@@ -48,6 +48,27 @@ func (r *ProductRepository) Create(product dto.SaveProductDto) (*entity.Product,
 	return &createdProduct, nil
 }
 
+func (r *ProductRepository) Update(id int, product dto.SaveProductDto) (*entity.Product, error) {
+	query := `
+		UPDATE product
+		SET name = $2, description = $3, price = $4, category_id = $5, stock_quantity = $6
+		WHERE id = $1
+		RETURNING *
+	`
+
+	row := r.DB.QueryRow(query, id,
+		product.Name, product.Description, product.Price, product.CategoryId, product.StockQuantity,
+	)
+
+	var updatedProduct entity.Product
+	err := scanProduct(row, &updatedProduct)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updatedProduct, nil
+}
+
 // Função auxiliar para construir a query e os argumentos
 func buildProductQuery(params dto.ProductQueryParams, selectClause string) (string, []interface{}) {
 	query := selectClause + `

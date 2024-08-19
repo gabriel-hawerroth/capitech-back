@@ -2,11 +2,13 @@ package handlers
 
 import "net/http"
 
+const (
+	errorDecodingRequestBody = "Error decoding request body"
+	errorCastingParams       = "Error casting params"
+	errorEncodingResponse    = "Error encoding response"
+)
+
 func checkDecodeError(err error, w http.ResponseWriter) {
-	if err != nil {
-		http.Error(w, "Error decoding request body", http.StatusInternalServerError)
-		return
-	}
 }
 
 func setHttpError(w http.ResponseWriter, err error, status int) {
