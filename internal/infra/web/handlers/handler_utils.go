@@ -8,9 +8,6 @@ const (
 	errorEncodingResponse    = "Error encoding response"
 )
 
-func checkDecodeError(err error, w http.ResponseWriter) {
-}
-
 func setHttpError(w http.ResponseWriter, err error, status int) {
 	http.Error(w, err.Error(), status)
 }

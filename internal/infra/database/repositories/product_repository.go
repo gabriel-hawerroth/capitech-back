@@ -28,7 +28,7 @@ func (r *ProductRepository) GetById(id *int) (*entity.Product, error) {
 	return &product, nil
 }
 
-func (r *ProductRepository) Create(product dto.SaveProductDto) (*entity.Product, error) {
+func (r *ProductRepository) Create(product dto.SaveProductDTO) (*entity.Product, error) {
 	query := `
 		INSERT INTO product (name, description, price, category_id, stock_quantity)
 		VALUES ($1, $2, $3, $4, $5)
@@ -48,7 +48,7 @@ func (r *ProductRepository) Create(product dto.SaveProductDto) (*entity.Product,
 	return &createdProduct, nil
 }
 
-func (r *ProductRepository) Update(id int, product dto.SaveProductDto) (*entity.Product, error) {
+func (r *ProductRepository) Update(id int, product dto.SaveProductDTO) (*entity.Product, error) {
 	query := `
 		UPDATE product
 		SET name = $2, description = $3, price = $4, category_id = $5, stock_quantity = $6
@@ -152,6 +152,16 @@ func (r *ProductRepository) ChangeImage(productId *int, image *string) error {
 
 func (r *ProductRepository) RemoveImage(productId *int) error {
 	_, err := r.DB.Exec("UPDATE product SET image = NULL WHERE id = $1", productId)
+	return err
+}
+
+func (r *ProductRepository) ChangePrice(productId int, newPrice float64) error {
+	_, err := r.DB.Exec("UPDATE product SET price = $2 WHERE id = $1", productId, newPrice)
+	return err
+}
+
+func (r *ProductRepository) ChangeStockQuantity(productId int, newStockQuantity int) error {
+	_, err := r.DB.Exec("UPDATE product SET stock_quantity = $2 WHERE id = $1", productId, newStockQuantity)
 	return err
 }
 

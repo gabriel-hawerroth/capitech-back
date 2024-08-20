@@ -45,11 +45,11 @@ func (s *ProductService) GetFilteredProducts(params dto.ProductQueryParams) (*dt
 	}, nil
 }
 
-func (s *ProductService) Create(dto dto.SaveProductDto) (*entity.Product, error) {
+func (s *ProductService) Create(dto dto.SaveProductDTO) (*entity.Product, error) {
 	return s.ProductRepository.Create(dto)
 }
 
-func (s *ProductService) Update(id int, dto dto.SaveProductDto) (*entity.Product, error) {
+func (s *ProductService) Update(id int, dto dto.SaveProductDTO) (*entity.Product, error) {
 	return s.ProductRepository.Update(id, dto)
 }
 
@@ -165,4 +165,12 @@ func (s *ProductService) RemoveImage(productId *int) error {
 	}
 
 	return nil
+}
+
+func (s *ProductService) ChangePrice(productId int, newPrice float64) error {
+	return s.ProductRepository.ChangePrice(productId, newPrice)
+}
+
+func (s *ProductService) ChangeStockQuantity(productId int, newStockQuantity int) error {
+	return s.ProductRepository.ChangeStockQuantity(productId, newStockQuantity)
 }

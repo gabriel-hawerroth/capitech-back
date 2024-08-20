@@ -41,9 +41,11 @@ func (h *ProductHandler) GetById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var data dto.SaveProductDto
-	err := json.NewDecoder(r.Body).Decode(&data)
-	checkDecodeError(err, w)
+	var data dto.SaveProductDTO
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, errorDecodingRequestBody, http.StatusInternalServerError)
+		return
+	}
 
 	product, err := h.ProductService.Create(data)
 	if err != nil {
@@ -65,9 +67,8 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var data dto.SaveProductDto
-	err = json.NewDecoder(r.Body).Decode(&data)
-	if err != nil {
+	var data dto.SaveProductDTO
+	if err = json.NewDecoder(r.Body).Decode(&data); err != nil {
 		http.Error(w, errorDecodingRequestBody, http.StatusInternalServerError)
 		return
 	}
@@ -123,11 +124,47 @@ func (h *ProductHandler) GetUserSearchHistory(w http.ResponseWriter, r *http.Req
 }
 
 func (h *ProductHandler) ChangePrice(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+	productId, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, errorCastingParams, http.StatusBadRequest)
+		return
+	}
+
+	var newPriceDTO dto.ChangeProductPriceDTO
+	if err := json.NewDecoder(r.Body).Decode(&newPriceDTO); err != nil {
+		http.Error(w, errorDecodingRequestBody, http.StatusBadRequest)
+		return
+	}
+
+	err = h.ProductService.ChangePrice(productId, newPriceDTO.NewPrice)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to change product price: %s", err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *ProductHandler) ChangeStockQuantity(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+	productId, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, errorCastingParams, http.StatusBadRequest)
+		return
+	}
+
+	var newStockQuantityDTO dto.ChangeProductStockQuantityDTO
+	if err := json.NewDecoder(r.Body).Decode(&newStockQuantityDTO); err != nil {
+		http.Error(w, errorDecodingRequestBody, http.StatusBadRequest)
+		return
+	}
+
+	err = h.ProductService.ChangeStockQuantity(productId, newStockQuantityDTO.NewStockQuantity)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to change product stock quantity: %s", err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *ProductHandler) ChangeImage(w http.ResponseWriter, r *http.Request) {

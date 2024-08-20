@@ -1,6 +1,6 @@
 package dto
 
-type SaveProductDto struct {
+type SaveProductDTO struct {
 	Name          string  `json:"name"`
 	Description   string  `json:"description"`
 	Price         float64 `json:"price"`
@@ -18,4 +18,12 @@ type ProductFilter struct {
 type ProductQueryParams struct {
 	Filters    ProductFilter `json:"filters"`
 	Pagination Pagination    `json:"pagination"`
+}
+
+type ChangeProductPriceDTO struct {
+	NewPrice float64 `json:"newPrice"`
+}
+
+type ChangeProductStockQuantityDTO struct {
+	NewStockQuantity int `json:"newStockQuantity"`
 }
