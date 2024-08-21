@@ -1,6 +1,6 @@
-.env
-.cmd
-.sh
+*.env
+*.cmd
+*.sh
 
 .idea/
 pkg/
