@@ -1,6 +1,6 @@
-*.env
-*.cmd
-*.sh
+.env
 
 .idea/
 pkg/
+
+scripts/updateProd.sh
