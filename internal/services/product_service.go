@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -14,18 +15,30 @@ import (
 
 type ProductService struct {
 	ProductRepository repositories.ProductRepository
+	SearchLogService  SearchLogService
 	S3Client          awsclients.S3Client
 }
 
-func NewProductService(productRepository repositories.ProductRepository, s3Client awsclients.S3Client) *ProductService {
+func NewProductService(productRepository repositories.ProductRepository, s3Client awsclients.S3Client, searchLogService SearchLogService) *ProductService {
 	return &ProductService{
 		ProductRepository: productRepository,
+		SearchLogService:  searchLogService,
 		S3Client:          s3Client,
 	}
 }
 
 func (s *ProductService) GetById(id *int) (*entity.Product, error) {
-	return s.ProductRepository.GetById(id)
+	product, err := s.ProductRepository.GetById(id)
+	if err != nil {
+		return nil, err
+	}
+
+	s.SearchLogService.Save(dto.SaveSearchLogDTO{
+		FieldKey:   "id",
+		FieldValue: strconv.Itoa(*id),
+	})
+
+	return product, nil
 }
 
 func (s *ProductService) GetFilteredProducts(params dto.ProductQueryParams) (*dto.PaginationResponse[entity.Product], error) {

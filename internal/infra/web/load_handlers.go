@@ -50,7 +50,11 @@ func loadProductHandlers() {
 	const basePath = "/product"
 
 	repository := repositories.NewProductRepository(db)
-	service := services.NewProductService(*repository, *s3Client)
+	searchLogRepository := repositories.NewSearchLogRepository(db)
+
+	searchLogService := services.NewSearchLogService(*searchLogRepository)
+	service := services.NewProductService(*repository, *s3Client, *searchLogService)
+
 	handler := handlers.NewProductHandler(*service)
 
 	server.AddHandler(getMapping(basePath)+"/{id}", handler.GetById)
