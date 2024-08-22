@@ -33,10 +33,12 @@ func (s *ProductService) GetById(id *int) (*entity.Product, error) {
 		return nil, err
 	}
 
-	s.SearchLogService.Save(dto.SaveSearchLogDTO{
-		FieldKey:   "id",
-		FieldValue: strconv.Itoa(*id),
-	})
+	go func() {
+		s.SearchLogService.Save(dto.SaveSearchLogDTO{
+			FieldKey:   "id",
+			FieldValue: strconv.Itoa(*id),
+		})
+	}()
 
 	return product, nil
 }
@@ -46,6 +48,8 @@ func (s *ProductService) GetFilteredProducts(params dto.ProductQueryParams) (*dt
 	if err != nil {
 		return nil, err
 	}
+
+	go s.SaveSearchLog(params.Filters)
 
 	totalItems, err := s.ProductRepository.GetFilteredProductsCount(params)
 	if err != nil {
@@ -186,4 +190,35 @@ func (s *ProductService) ChangePrice(productId int, newPrice float64) error {
 
 func (s *ProductService) ChangeStockQuantity(productId int, newStockQuantity int) error {
 	return s.ProductRepository.ChangeStockQuantity(productId, newStockQuantity)
+}
+
+func (s *ProductService) SaveSearchLog(filters dto.ProductFilter) {
+	if isNotEmpty(filters.Name) {
+		s.saveLog("name", *filters.Name)
+	}
+
+	if filters.MinPrice > 0 {
+		s.saveLog("price", strconv.Itoa(int(filters.MinPrice)))
+	}
+
+	if filters.MaxPrice < 50000 {
+		s.saveLog("price", strconv.Itoa(int(filters.MaxPrice)))
+	}
+
+	if len(filters.Categories) > 0 {
+		for index := range filters.Categories {
+			s.saveLog("category", strconv.Itoa(filters.Categories[index]))
+		}
+	}
+}
+
+func (s *ProductService) saveLog(fieldKey, fieldValue string) {
+	s.SearchLogService.Save(dto.SaveSearchLogDTO{
+		FieldKey:   fieldKey,
+		FieldValue: fieldValue,
+	})
+}
+
+func isNotEmpty(s *string) bool {
+	return s != nil && *s != ""
 }
