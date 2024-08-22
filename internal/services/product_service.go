@@ -192,6 +192,10 @@ func (s *ProductService) ChangeStockQuantity(productId int, newStockQuantity int
 	return s.ProductRepository.ChangeStockQuantity(productId, newStockQuantity)
 }
 
+func (s *ProductService) GetTrendingProductsList() ([]*dto.HomeProductDTO, error) {
+	return s.ProductRepository.GetTrendingProductsList()
+}
+
 func (s *ProductService) SaveSearchLog(filters dto.ProductFilter) {
 	if isNotEmpty(filters.Name) {
 		s.saveLog("name", *filters.Name)

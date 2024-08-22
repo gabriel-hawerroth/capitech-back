@@ -112,7 +112,17 @@ func (h *ProductHandler) GetProductsList(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *ProductHandler) GetTrendingProducts(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+	products, err := h.ProductService.GetTrendingProductsList()
+	if err != nil {
+		http.Error(w, "Error retrieving trending products", http.StatusInternalServerError)
+		return
+	}
+
+	setJsonContentType(w)
+	if err := json.NewEncoder(w).Encode(products); err != nil {
+		http.Error(w, errorEncodingResponse, http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *ProductHandler) GetBestSellingProducts(w http.ResponseWriter, r *http.Request) {

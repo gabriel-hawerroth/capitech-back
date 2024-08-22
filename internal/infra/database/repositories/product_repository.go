@@ -165,6 +165,53 @@ func (r *ProductRepository) ChangeStockQuantity(productId int, newStockQuantity 
 	return err
 }
 
+func (r *ProductRepository) GetTrendingProductsList() ([]*dto.HomeProductDTO, error) {
+	query := `
+		SELECT
+			p.id,
+			p.name,
+			p.price,
+			p.image,
+			COUNT(1) AS totalSearchs
+		FROM
+			search_log sl
+			JOIN product p ON (
+				(sl.field_key = 'id' AND sl.field_value::int = p.id)
+				OR (sl.field_key = 'name' AND p.name like '%' || sl.field_value || '%')
+				OR (sl.field_key = 'category' AND p.category_id = sl.field_value::int)
+			)
+		GROUP BY
+			p.id,
+			p.name,
+			p.price,
+			p.image
+		ORDER BY
+			totalSearchs DESC
+		LIMIT 12
+	`
+
+	rows, err := r.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	products := make([]*dto.HomeProductDTO, 0)
+	for rows.Next() {
+		product := &dto.HomeProductDTO{}
+		if err := scanHomeProducts(rows, product); err != nil {
+			return nil, err
+		}
+		products = append(products, product)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return products, nil
+}
+
 func scanProduct(row *sql.Row, product *entity.Product) error {
 	return row.Scan(
 		&product.Id, &product.Name, &product.Description, &product.Price,
@@ -185,4 +232,8 @@ func replacePlaceholders(query string, numArgs int) string {
 		query = strings.Replace(query, "?", placeholder, 1)
 	}
 	return query
+}
+
+func scanHomeProducts(rows *sql.Rows, product *dto.HomeProductDTO) error {
+	return rows.Scan(&product.Id, &product.Name, &product.Price, &product.Image)
 }
