@@ -2,12 +2,17 @@ package database
 
 import (
 	"database/sql"
+	"embed"
 	"log"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
+
+//go:embed migrations/*.sql
+var migrationFiles embed.FS
 
 func MigrateSchema(db *sql.DB) {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
@@ -15,8 +20,14 @@ func MigrateSchema(db *sql.DB) {
 		log.Fatalf("Error creating database driver: %v", err)
 	}
 
-	m, err := migrate.NewWithDatabaseInstance(
-		"file://../../db/migrations",
+	sourceDriver, err := iofs.New(migrationFiles, "migrations")
+	if err != nil {
+		log.Fatalf("Error creating source driver: %v", err)
+	}
+
+	m, err := migrate.NewWithInstance(
+		"iofs",
+		sourceDriver,
 		"postgres",
 		driver,
 	)
