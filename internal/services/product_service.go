@@ -210,8 +210,8 @@ func (s *ProductService) SaveSearchLog(filters dto.ProductFilter) {
 	}
 
 	if len(filters.Categories) > 0 {
-		for index := range filters.Categories {
-			s.saveLog("category", strconv.Itoa(filters.Categories[index]))
+		for _, categoryId := range filters.Categories {
+			s.saveLog("category", strconv.Itoa(categoryId))
 		}
 	}
 }
