@@ -202,11 +202,11 @@ func (s *ProductService) SaveSearchLog(filters dto.ProductFilter) {
 	}
 
 	if filters.MinPrice > 0 {
-		s.saveLog("price", strconv.Itoa(int(filters.MinPrice)))
+		s.saveLog("price", "> "+strconv.Itoa(int(filters.MinPrice)))
 	}
 
 	if filters.MaxPrice < 50000 {
-		s.saveLog("price", strconv.Itoa(int(filters.MaxPrice)))
+		s.saveLog("price", "< "+strconv.Itoa(int(filters.MaxPrice)))
 	}
 
 	if len(filters.Categories) > 0 {
