@@ -3,6 +3,7 @@ package web
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
 
 	"github.com/gabriel-hawerroth/capitech-back/internal/infra/database/repositories"
 	"github.com/gabriel-hawerroth/capitech-back/internal/infra/web/handlers"
@@ -20,9 +21,21 @@ func LoadHandlers(webServer *webserver.WebServer, dbConn *sql.DB, s3 *awsclients
 	db = dbConn
 	s3Client = s3
 
+	loadAuthHandlers()
 	loadCategoryHandlers()
 	loadShoppingCartHandlers()
 	loadProductHandlers()
+}
+
+func loadAuthHandlers() {
+	const basePath = "/auth"
+
+	repository := repositories.NewUserRepository(db)
+	service := services.NewAuthService(*repository)
+	handler := handlers.NewAuthHandler(*service)
+
+	postMapping(basePath+"/login", handler.DoLogin)
+	postMapping(basePath+"/createUser", handler.CreateNewUser)
 }
 
 func loadCategoryHandlers() {
@@ -32,7 +45,7 @@ func loadCategoryHandlers() {
 	service := services.NewCategoryService(*repository)
 	handler := handlers.NewCategoryHandler(*service)
 
-	server.AddHandler(getMapping(basePath), handler.GetCategoriesList)
+	getMapping(basePath, handler.GetCategoriesList)
 }
 
 func loadShoppingCartHandlers() {
@@ -42,8 +55,8 @@ func loadShoppingCartHandlers() {
 	service := services.NewShoppingCartService(*repository)
 	handler := handlers.NewShoppingCartHandler(*service)
 
-	server.AddHandler(postMapping(basePath), handler.AddProduct)
-	server.AddHandler(getMapping(basePath)+"/getUserShoppingCart", handler.GetUserShoppingCart)
+	postMapping(basePath, handler.AddProduct)
+	getMapping(basePath+"/getUserShoppingCart", handler.GetUserShoppingCart)
 }
 
 func loadProductHandlers() {
@@ -57,36 +70,39 @@ func loadProductHandlers() {
 
 	handler := handlers.NewProductHandler(*service)
 
-	server.AddHandler(getMapping(basePath)+"/{id}", handler.GetById)
-	server.AddHandler(getMapping(basePath), handler.GetProductsList)
-	server.AddHandler(getMapping(basePath)+"/getTrendingProductsList", handler.GetTrendingProducts)
-	server.AddHandler(getMapping(basePath)+"/getBestSellingProductsList", handler.GetBestSellingProducts)
-	server.AddHandler(getMapping(basePath)+"/getUserSearchHistory", handler.GetUserSearchHistory)
-	server.AddHandler(postMapping(basePath), handler.Create)
-	server.AddHandler(putMapping(basePath)+"/{id}", handler.Update)
-	server.AddHandler(patchMapping(basePath)+"/editProductPrice/{id}", handler.ChangePrice)
-	server.AddHandler(patchMapping(basePath)+"/editProductStockQuantity/{id}", handler.ChangeStockQuantity)
-	server.AddHandler(patchMapping(basePath)+"/changeProductImage/{id}", handler.ChangeImage)
-	server.AddHandler(patchMapping(basePath)+"/removeProductImage/{id}", handler.RemoveImage)
-	server.AddHandler(deleteMapping(basePath)+"/{id}", handler.RemoveImage)
+	getMapping(basePath, handler.GetProductsList)
+	getMapping(basePath+"/{id}", handler.GetById)
+	getMapping(basePath+"/getTrendingProductsList", handler.GetTrendingProducts)
+	getMapping(basePath+"/getBestSellingProductsList", handler.GetBestSellingProducts)
+	getMapping(basePath+"/getUserSearchHistory", handler.GetUserSearchHistory)
+
+	postMapping(basePath, handler.Create)
+
+	putMapping(basePath+"/{id}", handler.Update)
+	patchMapping(basePath+"/editProductPrice/{id}", handler.ChangePrice)
+	patchMapping(basePath+"/editProductStockQuantity/{id}", handler.ChangeStockQuantity)
+	patchMapping(basePath+"/changeProductImage/{id}", handler.ChangeImage)
+	patchMapping(basePath+"/removeProductImage/{id}", handler.RemoveImage)
+
+	deleteMapping(basePath+"/{id}", handler.RemoveImage)
 }
 
-func getMapping(path string) string {
-	return fmt.Sprintf("GET %s", path)
+func getMapping(path string, handler http.HandlerFunc) {
+	server.AddHandler(fmt.Sprintf("GET %s", path), handler)
 }
 
-func postMapping(path string) string {
-	return fmt.Sprintf("POST %s", path)
+func postMapping(path string, handler http.HandlerFunc) {
+	server.AddHandler(fmt.Sprintf("POST %s", path), handler)
 }
 
-func putMapping(path string) string {
-	return fmt.Sprintf("PUT %s", path)
+func putMapping(path string, handler http.HandlerFunc) {
+	server.AddHandler(fmt.Sprintf("PUT %s", path), handler)
 }
 
-func patchMapping(path string) string {
-	return fmt.Sprintf("PATCH %s", path)
+func patchMapping(path string, handler http.HandlerFunc) {
+	server.AddHandler(fmt.Sprintf("PATCH %s", path), handler)
 }
 
-func deleteMapping(path string) string {
-	return fmt.Sprintf("DELETE %s", path)
+func deleteMapping(path string, handler http.HandlerFunc) {
+	server.AddHandler(fmt.Sprintf("DELETE %s", path), handler)
 }

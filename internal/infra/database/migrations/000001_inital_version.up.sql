@@ -1,7 +1,8 @@
 /* Entity User */
 create table users (
 	id SERIAL UNIQUE NOT NULL,
-	email VARCHAR(255) NOT NULL,
+	email VARCHAR(255) UNIQUE NOT NULL,
+	password CHAR(60) NOT NULL,
 	active BOOL NOT NULL DEFAULT FALSE,
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
