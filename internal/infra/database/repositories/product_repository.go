@@ -212,6 +212,50 @@ func (r *ProductRepository) GetTrendingProductsList() ([]*dto.HomeProductDTO, er
 	return products, nil
 }
 
+func (r *ProductRepository) GetBestSellingProductsList() ([]*dto.HomeProductDTO, error) {
+	query := `
+		SELECT
+			prd.id,
+			prd.name,
+			prd.price,
+			prd.image,
+			SUM(pi.quantity) AS totalSales
+		FROM
+			purchase p
+			JOIN purchase_item pi ON p.id = pi.purchase_id
+			JOIN product prd ON pi.product_id = prd.id
+		GROUP BY
+			prd.id,
+			prd.name,
+			prd.price,
+			prd.image
+		ORDER BY
+			totalSales DESC
+		LIMIT 12
+	`
+
+	rows, err := r.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	products := make([]*dto.HomeProductDTO, 0)
+	for rows.Next() {
+		product := &dto.HomeProductDTO{}
+		if err := scanHomeProducts(rows, product); err != nil {
+			return nil, err
+		}
+		products = append(products, product)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return products, nil
+}
+
 func scanProduct(row *sql.Row, product *entity.Product) error {
 	return row.Scan(
 		&product.Id, &product.Name, &product.Description, &product.Price,
@@ -235,5 +279,6 @@ func replacePlaceholders(query string, numArgs int) string {
 }
 
 func scanHomeProducts(rows *sql.Rows, product *dto.HomeProductDTO) error {
-	return rows.Scan(&product.Id, &product.Name, &product.Price, &product.Image)
+	var totalSearchs *int
+	return rows.Scan(&product.Id, &product.Name, &product.Price, &product.Image, &totalSearchs)
 }

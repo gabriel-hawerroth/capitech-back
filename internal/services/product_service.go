@@ -196,6 +196,10 @@ func (s *ProductService) GetTrendingProductsList() ([]*dto.HomeProductDTO, error
 	return s.ProductRepository.GetTrendingProductsList()
 }
 
+func (s *ProductService) GetBestSellingProductsList() ([]*dto.HomeProductDTO, error) {
+	return s.ProductRepository.GetBestSellingProductsList()
+}
+
 func (s *ProductService) SaveSearchLog(filters dto.ProductFilter) {
 	if isNotEmpty(filters.Name) {
 		s.saveLog("name", *filters.Name)

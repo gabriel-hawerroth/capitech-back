@@ -114,7 +114,8 @@ func (h *ProductHandler) GetProductsList(w http.ResponseWriter, r *http.Request)
 func (h *ProductHandler) GetTrendingProducts(w http.ResponseWriter, r *http.Request) {
 	products, err := h.ProductService.GetTrendingProductsList()
 	if err != nil {
-		http.Error(w, "Error retrieving trending products", http.StatusInternalServerError)
+		println(err.Error())
+		http.Error(w, "Error retrieving products list", http.StatusInternalServerError)
 		return
 	}
 
@@ -126,7 +127,18 @@ func (h *ProductHandler) GetTrendingProducts(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *ProductHandler) GetBestSellingProducts(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+	products, err := h.ProductService.GetBestSellingProductsList()
+	if err != nil {
+		println(err.Error())
+		http.Error(w, "Error retrieving products list", http.StatusInternalServerError)
+		return
+	}
+
+	setJsonContentType(w)
+	if err := json.NewEncoder(w).Encode(products); err != nil {
+		http.Error(w, errorEncodingResponse, http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *ProductHandler) GetUserSearchHistory(w http.ResponseWriter, r *http.Request) {
