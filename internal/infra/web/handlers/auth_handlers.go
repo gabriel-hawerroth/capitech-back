@@ -19,7 +19,24 @@ func NewAuthHandler(AuthService services.AuthService) *AuthHandler {
 }
 
 func (h *AuthHandler) DoLogin(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+	email := r.URL.Query().Get("email")
+	password := r.URL.Query().Get("password")
+
+	res, err := h.AuthService.DoLogin(email, password)
+	if err != nil {
+		if err == services.ErrGeneratingToken {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		http.Error(w, "bad credentials", http.StatusUnauthorized)
+		return
+	}
+
+	setJsonContentType(w)
+	if err := json.NewEncoder(w).Encode(map[string]string{"token": res}); err != nil {
+		http.Error(w, errorEncodingResponse, http.StatusInternalServerError)
+	}
 }
 
 func (h *AuthHandler) CreateNewUser(w http.ResponseWriter, r *http.Request) {

@@ -8,7 +8,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const errorUserAlreadyExists = "this email is already in use"
+var (
+	errUserAlreadyExists = errors.New("this email is already in use")
+	errInvalidPasswod    = errors.New("invalid password")
+	ErrGeneratingToken   = errors.New("error generating token")
+)
 
 type AuthService struct {
 	UserRepository repositories.UserRepository
@@ -20,13 +24,32 @@ func NewAuthService(UserRepository repositories.UserRepository) *AuthService {
 	}
 }
 
+func (s *AuthService) DoLogin(email, password string) (string, error) {
+	user, err := s.UserRepository.FindByEmail(email)
+	if err != nil {
+		return "", err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return "", errInvalidPasswod
+	}
+
+	token, err := GenerateToken(user.Email)
+	if err != nil {
+		return "", ErrGeneratingToken
+	}
+
+	return token, nil
+}
+
 func (s *AuthService) CreateNewUser(dto dto.CreateUserDTO) error {
 	exists, err := s.UserRepository.ExistsByEmail(dto.Email)
 	if err != nil {
 		return err
 	}
 	if exists {
-		return errors.New(errorUserAlreadyExists)
+		return errUserAlreadyExists
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
