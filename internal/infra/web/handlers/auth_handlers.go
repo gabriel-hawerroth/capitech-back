@@ -46,6 +46,11 @@ func (h *AuthHandler) CreateNewUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := dto.Validate(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	err := h.AuthService.CreateNewUser(dto)
 	if err != nil {
 		setHttpError(w, err, http.StatusInternalServerError)

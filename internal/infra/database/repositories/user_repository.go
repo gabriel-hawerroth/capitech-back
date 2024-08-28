@@ -48,7 +48,10 @@ func (r *UserRepository) FindByEmail(email string) (*entity.User, error) {
 }
 
 func (r *UserRepository) CreateNewUser(dto dto.CreateUserDTO) error {
-	_, err := r.DB.Exec("INSERT INTO users (email, password, active) VALUES ($1, $2, true)", dto.Email, dto.Password)
+	_, err := r.DB.Exec(
+		"INSERT INTO users (name, email, password, active) VALUES ($1, $2, $3, true)",
+		dto.Name, dto.Email, dto.Password,
+	)
 	return err
 }
 

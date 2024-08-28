@@ -1,6 +1,7 @@
 /* Entity User */
 create table users (
 	id SERIAL UNIQUE NOT NULL,
+	name VARCHAR(15) NOT NULL,
 	email VARCHAR(255) UNIQUE NOT NULL,
 	password CHAR(60) NOT NULL,
 	active BOOL NOT NULL DEFAULT FALSE,
