@@ -2,5 +2,3 @@
 
 .idea/
 pkg/
-
-scripts/updateProd.sh
