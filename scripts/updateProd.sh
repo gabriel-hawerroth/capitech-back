@@ -1,8 +1,8 @@
-ssh root@147.79.81.13 "pm2 delete api.capitech"
-ssh root@147.79.81.13 "rm -rf /home/ubuntu/workspace/capitech_api/capitech_api"
+ssh ubuntu@168.138.150.229 "pm2 delete api.capitech"
+ssh ubuntu@168.138.150.229 "rm -rf /home/ubuntu/prd_projects/back/capitech/capitech_api"
 
-scp -r capitech_api root@147.79.81.13:/home/ubuntu/workspace/capitech_api/
+scp -r capitech_api ubuntu@168.138.150.229:/home/ubuntu/prd_projects/back/capitech/
 
-ssh root@147.79.81.13 "/root/start_capitech_api.sh"
+ssh ubuntu@168.138.150.229 "/home/ubuntu/start_scripts/start_capitech_api.sh"
 
 rm capitech_api
