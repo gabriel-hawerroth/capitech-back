@@ -1,8 +1,12 @@
 package webserver
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"time"
 )
 
 type WebServer struct {
@@ -34,9 +38,31 @@ func (s *WebServer) Start() {
 		s.Router.Handle(path, handler)
 	}
 
-	log.Println("Starting web server on port", s.WebServerPort)
-	err := http.ListenAndServe(s.WebServerPort, muxHandler)
-	if err != nil {
-		panic(err)
+	server := &http.Server{
+		Addr:    s.WebServerPort,
+		Handler: muxHandler,
 	}
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+
+	go func() {
+		log.Println("Starting web server on port", s.WebServerPort)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Could not listen on %s: %v\n", s.WebServerPort, err)
+		}
+	}()
+
+	<-stop
+
+	log.Println("Shutting down the server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	log.Println("Server exiting")
 }
