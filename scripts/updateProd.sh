@@ -1,5 +1,4 @@
 ssh ubuntu@hawetec "pm2 delete api.capitech"
-ssh ubuntu@hawetec "rm -rf /home/ubuntu/prd_projects/back/capitech/capitech_api"
 
 scp -r capitech_api ubuntu@hawetec:/home/ubuntu/prd_projects/back/capitech/
 
